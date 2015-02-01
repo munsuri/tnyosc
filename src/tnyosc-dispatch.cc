@@ -5,7 +5,9 @@
 #include <iostream>
 
 #include <assert.h>
-//#include <arpa/inet.h>
+#if !defined(_WIN32)
+#include <arpa/inet.h>
+#endif
 #include <stdio.h>
 
 using namespace tnyosc;
