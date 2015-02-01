@@ -1,14 +1,48 @@
-#include "tnyosc-dispatch.hpp"
 #include "tnyosc.hpp"
+#include "tnyosc-dispatch.hpp"
 
 #include <algorithm>
 #include <iostream>
 
 #include <assert.h>
-#include <arpa/inet.h>
+//#include <arpa/inet.h>
 #include <stdio.h>
 
 using namespace tnyosc;
+
+/*char *strndup (const char *s, size_t n){
+	char *result;
+	size_t len = strlen (s);
+
+	if (n < len)
+		len = n;
+
+	result = (char *) malloc (len + 1);
+	if (!result)
+		return 0;
+
+	result[len] = '\0';
+	return (char *) memcpy (result, s, len);
+}*/
+char *
+strndup (const char *s, size_t size)
+{
+  char *r;
+  char *end = (char*)memchr(s, 0, size);
+
+  if (end)
+    //Length + 1
+    size = end - s + 1;
+
+  r = (char*)malloc(size);
+
+  if (size)
+    {
+      memcpy(r, s, size-1);
+      r[size-1] = '\0';
+    }
+  return r;
+}
 
 void print_bytes(const char* bytes, size_t size)
 {
@@ -161,23 +195,24 @@ std::list<CallbackRef> Dispatcher::match_methods(const char* data, size_t size)
   return callback_list;
 }
 
-struct timeval ntp_to_unixtime(uint32_t sec, uint32_t frac)
+struct tnyosc::timeval ntp_to_unixtime(uint32_t sec, uint32_t frac)
 {
   // time between 1-1-1900 and 1-1-1950
   static const uint64_t epoch = 2208988800UL;
 
-  struct timeval tv;
+  struct tnyosc::timeval tv;
   if (sec == 0 && frac == 1) {
     memset(&tv, 0, sizeof(tv));
   } else {
     tv.tv_sec = sec - epoch;
-    tv.tv_usec = (suseconds_t)((double)frac * 0.0002328306437080);
+    //tv.tv_usec = (suseconds_t)((double)frac * 0.0002328306437080);
+    tv.tv_usec = ((double)frac * 0.0002328306437080);
   }
 
   return tv;
 }
 
-const struct timeval Dispatcher::kZeroTimetag = {0, 0};
+const struct tnyosc::timeval Dispatcher::kZeroTimetag = {0, 0};
 
 bool Dispatcher::decode_data(const char* data, size_t size, 
     std::list<ParsedMessage>& messages, struct timeval timetag)
